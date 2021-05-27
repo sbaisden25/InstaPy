@@ -22,6 +22,7 @@ from .util import get_action_delay
 from .util import explicit_wait
 from .util import extract_text_from_element
 from .util import evaluate_mandatory_words
+from .util import get_additional_data
 from .quota_supervisor import quota_supervisor
 from .follow_util import get_following_status
 from .event import Event
@@ -89,7 +90,7 @@ def get_main_element(browser, link_elems, skip_top_posts):
 
 
 def get_links_for_location(
-    browser, location, amount, logger, media=None, skip_top_posts=True
+        browser, location, amount, logger, media=None, skip_top_posts=True
 ):
     """
     Fetches the number of links specified by amount and returns a list of links
@@ -419,15 +420,15 @@ def get_links_for_tag(browser, tag, amount, skip_top_posts, randomize, media, lo
 
 
 def get_links_for_username(
-    browser,
-    username,
-    person,
-    amount,
-    logger,
-    logfolder,
-    randomize=False,
-    media=None,
-    taggedImages=False,
+        browser,
+        username,
+        person,
+        amount,
+        logger,
+        logfolder,
+        randomize=False,
+        media=None,
+        taggedImages=False,
 ):
     """
     Fetches the number of links specified by amount and returns a list of links
@@ -473,9 +474,9 @@ def get_links_for_username(
 
     is_private = is_private_profile(browser, logger, following_status == "Following")
     if (
-        is_private is None
-        or (is_private is True and following_status not in ["Following", True])
-        or (following_status == "Blocked")
+            is_private is None
+            or (is_private is True and following_status not in ["Following", True])
+            or (following_status == "Blocked")
     ):
         logger.info("This user is private and we are not following")
         return False
@@ -536,16 +537,16 @@ def get_media_edge_comment_string(media):
 
 
 def check_link(
-    browser,
-    post_link,
-    dont_like,
-    mandatory_words,
-    mandatory_language,
-    mandatory_character,
-    is_mandatory_character,
-    check_character_set,
-    ignore_if_contains,
-    logger,
+        browser,
+        post_link,
+        dont_like,
+        mandatory_words,
+        mandatory_language,
+        mandatory_character,
+        is_mandatory_character,
+        check_character_set,
+        ignore_if_contains,
+        logger,
 ):
     """
     Check the given link if it is appropriate
@@ -569,22 +570,7 @@ def check_link(
     web_address_navigator(browser, post_link)
 
     # Check if the Post is Valid/Exists
-    try:
-        post_page = browser.execute_script(
-            "return window.__additionalData[Object.keys(window.__additionalData)[0]].data"
-        )
-
-    except WebDriverException:  # handle the possible `entry_data` error
-        try:
-            browser.execute_script("location.reload()")
-            update_activity(browser, state=None)
-
-            post_page = browser.execute_script(
-                "return window._sharedData.entry_data.PostPage[0]"
-            )
-
-        except WebDriverException:
-            post_page = None
+    post_page = get_additional_data(browser)
 
     if post_page is None:
         logger.warning("Unavailable Page: {}".format(post_link.encode("utf-8")))
@@ -603,34 +589,17 @@ def check_link(
         location = media["location"]
         location_name = location["name"] if location else None
         media_edge_string = get_media_edge_comment_string(media)
-        # double {{ allows us to call .format here:
-        try:
-            browser.execute_script(
-                "window.insta_data = window.__additionalData[Object.keys(window.__additionalData)[0]].data"
-            )
-        except WebDriverException:
-            browser.execute_script(
-                "window.insta_data = window._sharedData.entry_data.PostPage[0]"
-            )
-        owner_comments = browser.execute_script(
-            """
-            latest_comments = window.insta_data.graphql.shortcode_media.{}.edges;
-            if (latest_comments === undefined) {{
-                latest_comments = Array();
-                owner_comments = latest_comments
-                    .filter(item => item.node.owner.username == arguments[0])
-                    .map(item => item.node.text)
-                    .reduce((item, total) => item + '\\n' + total, '');
-                return owner_comments;}}
-            else {{
-                return null;}}
-        """.format(
-                media_edge_string
-            ),
-            user_name,
-        )
+        # Gets all comments on media
+        comments = media[media_edge_string]["edges"] if media[media_edge_string]["edges"] else None
+        owner_comments = ""
+        # Concat all owner comments
+        if comments is not None:
+            for comment in comments:
+                if comment["node"]["owner"]["username"] == user_name:
+                    owner_comments = owner_comments + "\n" + comment["node"]["text"]
 
     else:
+        logger.info("post_page: {}".format(post_page))
         media = post_page[0]["shortcode_media"]
         is_video = media["is_video"]
         user_name = media["owner"]["username"]
@@ -728,8 +697,8 @@ def check_link(
         if quash:
             quashed = (
                 (((quash.group(0)).split("#")[1]).split(" ")[0])
-                .split("\n")[0]
-                .encode("utf-8")
+                    .split("\n")[0]
+                    .encode("utf-8")
             )  # dismiss possible space and newlines
             iffy = (
                 (re.split(r"\W+", dont_likes_regex))[3]
@@ -849,27 +818,11 @@ def get_tags(browser, url):
     # then do not navigate to it again
     web_address_navigator(browser, url)
 
-    try:
-        browser.execute_script(
-            "window.insta_data = window.__additionalData[Object.keys(window.__additionalData)[0]].data"
-        )
-    except WebDriverException:
-        browser.execute_script(
-            "window.insta_data = window._sharedData.entry_data.PostPage[0]"
-        )
+    additional_data = get_additional_data(browser)
+    image_text = additional_data["graphql"]["shortcode_media"]["edge_media_to_caption"]["edges"][0]["node"]["text"]
 
-    graphql = browser.execute_script("return ('graphql' in window.insta_data)")
-
-    if graphql:
-        image_text = browser.execute_script(
-            "return window.insta_data.graphql."
-            "shortcode_media.edge_media_to_caption.edges[0].node.text"
-        )
-
-    else:
-        image_text = browser.execute_script(
-            "return window.insta_data.media.caption.text"
-        )
+    if not image_text:
+        image_text = ""
 
     tags = findall(r"#\w*", image_text)
 
@@ -929,38 +882,12 @@ def get_links(browser, page, logger, media, element):
 def verify_liking(browser, maximum, minimum, logger):
     """Get the amount of existing existing likes and compare it against maximum
     & minimum values defined by user"""
-    try:
-        likes_count = browser.execute_script(
-            "return window.__additionalData[Object.keys(window.__additionalData)[0]].data"
-            ".graphql.shortcode_media.edge_media_preview_like.count"
-        )
 
-    except WebDriverException:
-        try:
-            browser.execute_script("location.reload()")
-            update_activity(browser, state=None)
+    post_page = get_additional_data(browser)
+    likes_count = post_page["graphql"]["shortcode_media"]["edge_media_preview_like"]["count"]
 
-            likes_count = browser.execute_script(
-                "return window._sharedData.entry_data."
-                "PostPage[0].graphql.shortcode_media.edge_media_preview_like"
-                ".count"
-            )
-
-        except WebDriverException:
-            try:
-                likes_count = browser.find_element_by_css_selector(
-                    "section._1w76c._nlmjy > div > a > span"
-                ).text
-
-                if likes_count:
-                    likes_count = format_number(likes_count)
-                else:
-                    logger.info("Failed to check likes' count  ~empty string\n")
-                    return True
-
-            except NoSuchElementException:
-                logger.info("Failed to check likes' count\n")
-                return True
+    if not likes_count:
+        likes_count = 0
 
     if maximum is not None and likes_count > maximum:
         logger.info(
