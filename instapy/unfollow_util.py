@@ -552,7 +552,7 @@ def follow_user(browser, track, login, user_name, button, blacklist, logger, log
         )
         if following_status in ["Follow", "Follow Back"]:
             click_visibly(browser, follow_button)  # click to follow
-            # sleep(random.randint(5, 15)) // bad because leads to "already following"
+            sleep(random.randint(5, 15))
             follow_state, msg = verify_action(
                 browser, "follow", track, login, user_name, None, logger, logfolder
             )
