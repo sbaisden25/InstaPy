@@ -71,7 +71,7 @@ def get_following_status(
                 web_address_navigator(browser, user_link)
                 button = browser.find_element(By.XPATH, "//button[text()='Follow']")
                 button.click()
-                sleep(randit(5,15))
+                sleep(randint(5, 15))
             except:
                 return "UNAVAILABLE", None
             return "Following", None

@@ -1999,7 +1999,7 @@ def click_visibly(browser, element):
         )
         # update server calls
         update_activity(browser, state=None)
-        sleep(randint(1, 5))
+        sleep(randint(2, 6))
 
         click_element(browser, element)
 

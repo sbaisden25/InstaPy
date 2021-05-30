@@ -11,6 +11,7 @@ from .constants import MEDIA_CAROUSEL
 from .constants import MEDIA_ALL_TYPES
 from .time_util import sleep
 from .util import format_number
+from .util import reload_webpage
 from .util import add_user_to_blacklist
 from .util import click_element
 from .util import is_private_profile
@@ -800,7 +801,8 @@ def like_image(browser, username, blacklist, logger, logfolder, total_liked_img)
 def verify_liked_image(browser, logger):
     """Check for a ban on likes using the last liked image"""
 
-    browser.refresh()
+    #browser.refresh()
+    reload_webpage(browser)
     unlike_xpath = read_xpath(like_image.__name__, "unlike")
     like_elem = browser.find_elements_by_xpath(unlike_xpath)
 
@@ -855,7 +857,7 @@ def get_links(browser, page, logger, media, element):
                         post_category = element.find_element_by_xpath(
                             "//a[@href='/p/"
                             + post_href.split("/")[-2]
-                            + "/']/child::div[@class='u7YqG']/child::div"
+                            + "/']/child::div[@class='u7YqG']/child::div/*[name()='svg']"
                         ).get_attribute("aria-label")
 
                         if post_category in media:

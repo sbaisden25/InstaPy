@@ -552,6 +552,7 @@ def follow_user(browser, track, login, user_name, button, blacklist, logger, log
         )
         if following_status in ["Follow", "Follow Back"]:
             click_visibly(browser, follow_button)  # click to follow
+            sleep(random.randint(5, 15))
             follow_state, msg = verify_action(
                 browser, "follow", track, login, user_name, None, logger, logfolder
             )
@@ -1540,6 +1541,7 @@ def verify_action(
             else:
                 if retry_count == 1:
                     reload_webpage(browser)
+                    # browser.execute_script("location.reload()")
                     sleep(4)
 
                 elif retry_count == 2:
@@ -1551,7 +1553,13 @@ def verify_action(
                         confirm_unfollow(browser)
 
                     sleep(4)
+
                 elif retry_count == 3:
+                    reload_webpage(browser)
+                    # browser.execute_script("location.reload()")
+                    sleep(4)
+
+                elif retry_count == 4:
                     logger.warning(
                         "Last {0} is not verified."
                         "\t~'{1}' might be temporarily blocked "
