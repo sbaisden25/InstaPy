@@ -66,15 +66,7 @@ def get_following_status(
             )
             return "Following", follow_button
         except:
-            try:
-                user_link = "https://www.instagram.com/{}/".format(person)
-                web_address_navigator(browser, user_link)
-                button = browser.find_element(By.XPATH, "//button[text()='Follow']")
-                button.click()
-                sleep(randint(5, 15))
-            except:
-                return "UNAVAILABLE", None
-            return "Following", None
+            return "UNAVAILABLE", None
     follow_button = explicit_wait(
         browser, "VOEL", [follow_button_XP, "XPath"], logger, 7, False
     )
