@@ -91,7 +91,7 @@ def get_main_element(browser, link_elems, skip_top_posts):
 
 
 def get_links_for_location(
-        browser, location, amount, logger, media=None, skip_top_posts=True
+    browser, location, amount, logger, media=None, skip_top_posts=True
 ):
     """
     Fetches the number of links specified by amount and returns a list of links
@@ -421,15 +421,15 @@ def get_links_for_tag(browser, tag, amount, skip_top_posts, randomize, media, lo
 
 
 def get_links_for_username(
-        browser,
-        username,
-        person,
-        amount,
-        logger,
-        logfolder,
-        randomize=False,
-        media=None,
-        taggedImages=False,
+    browser,
+    username,
+    person,
+    amount,
+    logger,
+    logfolder,
+    randomize=False,
+    media=None,
+    taggedImages=False,
 ):
     """
     Fetches the number of links specified by amount and returns a list of links
@@ -475,9 +475,9 @@ def get_links_for_username(
 
     is_private = is_private_profile(browser, logger, following_status == "Following")
     if (
-            is_private is None
-            or (is_private is True and following_status not in ["Following", True])
-            or (following_status == "Blocked")
+        is_private is None
+        or (is_private is True and following_status not in ["Following", True])
+        or (following_status == "Blocked")
     ):
         logger.info("This user is private and we are not following")
         return False
@@ -538,16 +538,16 @@ def get_media_edge_comment_string(media):
 
 
 def check_link(
-        browser,
-        post_link,
-        dont_like,
-        mandatory_words,
-        mandatory_language,
-        mandatory_character,
-        is_mandatory_character,
-        check_character_set,
-        ignore_if_contains,
-        logger,
+    browser,
+    post_link,
+    dont_like,
+    mandatory_words,
+    mandatory_language,
+    mandatory_character,
+    is_mandatory_character,
+    check_character_set,
+    ignore_if_contains,
+    logger,
 ):
     """
     Check the given link if it is appropriate
@@ -591,7 +591,11 @@ def check_link(
         location_name = location["name"] if location else None
         media_edge_string = get_media_edge_comment_string(media)
         # Gets all comments on media
-        comments = media[media_edge_string]["edges"] if media[media_edge_string]["edges"] else None
+        comments = (
+            media[media_edge_string]["edges"]
+            if media[media_edge_string]["edges"]
+            else None
+        )
         owner_comments = ""
         # Concat all owner comments
         if comments is not None:
@@ -698,8 +702,8 @@ def check_link(
         if quash:
             quashed = (
                 (((quash.group(0)).split("#")[1]).split(" ")[0])
-                    .split("\n")[0]
-                    .encode("utf-8")
+                .split("\n")[0]
+                .encode("utf-8")
             )  # dismiss possible space and newlines
             iffy = (
                 (re.split(r"\W+", dont_likes_regex))[3]
@@ -801,7 +805,7 @@ def like_image(browser, username, blacklist, logger, logfolder, total_liked_img)
 def verify_liked_image(browser, logger):
     """Check for a ban on likes using the last liked image"""
 
-    #browser.refresh()
+    # browser.refresh()
     reload_webpage(browser)
     unlike_xpath = read_xpath(like_image.__name__, "unlike")
     like_elem = browser.find_elements_by_xpath(unlike_xpath)
@@ -821,7 +825,9 @@ def get_tags(browser, url):
     web_address_navigator(browser, url)
 
     additional_data = get_additional_data(browser)
-    image_text = additional_data["graphql"]["shortcode_media"]["edge_media_to_caption"]["edges"][0]["node"]["text"]
+    image_text = additional_data["graphql"]["shortcode_media"]["edge_media_to_caption"][
+        "edges"
+    ][0]["node"]["text"]
 
     if not image_text:
         image_text = ""
@@ -886,7 +892,9 @@ def verify_liking(browser, maximum, minimum, logger):
     & minimum values defined by user"""
 
     post_page = get_additional_data(browser)
-    likes_count = post_page["graphql"]["shortcode_media"]["edge_media_preview_like"]["count"]
+    likes_count = post_page["graphql"]["shortcode_media"]["edge_media_preview_like"][
+        "count"
+    ]
 
     if not likes_count:
         likes_count = 0
@@ -908,7 +916,7 @@ def verify_liking(browser, maximum, minimum, logger):
 
 
 def like_comment(browser, original_comment_text, logger):
-    """ Like the given comment """
+    """Like the given comment"""
     comments_block_XPath = read_xpath(
         like_comment.__name__, "comments_block"
     )  # quite an efficient
