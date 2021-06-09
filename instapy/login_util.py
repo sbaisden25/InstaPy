@@ -688,6 +688,7 @@ def two_factor_authentication(browser, logger, security_codes):
 
 def accept_igcookie_dialogue(browser, logger):
     """Presses 'Accept' button on IG cookie dialogue"""
+
     offer_elem_loc = read_xpath(accept_igcookie_dialogue.__name__, "accept_button")
 
     offer_loaded = explicit_wait(
